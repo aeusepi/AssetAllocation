@@ -5,7 +5,7 @@ libs=c("ggplot2","digest","zoo","xts","Rblpapi","timeDate","crayon","pillar",
        "fontcm","RODBC","grid","gridExtra","farver","corrplot","BLCOP",
        "fPortfolio","PortfolioAnalytics","MASS","ggthemes","nloptr","mvtnorm","Matrix",
        "")
-
+install.Rtools(check = TRUE, check_r_update = TRUE, GUI = TRUE, ...)
 .libPaths(c("C:/Users/eusep/Documents/Rpacks","C:/Program Files/R/R-4.2.0/library"))
 
 install.packages(c("vctrs"),lib="C:/Users/eusep/Documents/Rpacks")

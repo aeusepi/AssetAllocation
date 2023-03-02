@@ -1,0 +1,48 @@
+variable,Type,Ccy,Asset ,Portfolio,Weight,Rk
+USGG10YR Index,FI_Carry,USD,US_10yr,US_10yr,1,1
+USYC5Y30 Index,FI_Carry,USD,US_5s30s,US_5s30s,1,2
+USYC2Y10 Index,FI_Carry,USD,US_2s10s,US_2s10s,-1,2
+GACGB10 Index,FI_Carry,AUD,AU_10yr,AU_10yr,1,1
+AUYC5Y15 Index,FI_Carry,AUD,AU_5s15s,AU_5s15s,1,2
+GBTPGR10 Index,Credit_Carry,EUR,IT_10yr,IT_Spread,1,8
+GDBR10 Index,Credit_Carry,EUR,DE_10yr,IT_Spread,-1,8
+ITYC5Y30 Index,FI_Carry,EUR,IT_5s30s,IT_5s30s,1,2
+GDBR10 Index,FI_Carry,EUR,DE_10yr,DE_10yr,1,1
+DEYC5Y30 Index,FI_Carry,EUR,DE_5s30s,DE_5s30s,1,2
+GUKG10 Index,FI_Carry,GBP,UK_10yr,UK_10yr,1,1
+UKYC5Y30 Index,FI_Carry,GBP,UK_5s30s,UK_5s30s,1,2
+AUD BGN Curncy,FX_Carry,AUD,AUD,USD_G10,0,3
+BRL BGN Curncy,FX_Carry,BRL,BRL,USD_LatAm,0.4,6
+CAD BGN Curncy,FX_Carry,CAD,CAD,USD_G10,0,3
+CHF BGN Curncy,FX_Carry,CHF,CHF,USD_G10,0,3
+ILS BGN Curncy,FX_Carry,ILS,ILS,USD_Emea,0,4
+SEK BGN Curncy,FX_Carry,SEK,SEK,USD_G10,0,3
+CLP BGN Curncy,FX_Carry,CLP,CLP,USD_LatAm,0.1,6
+COP BGN Curncy,FX_Carry,COP,COP,USD_LatAm,0.1,6
+EUR BGN Curncy,FX_Carry,EUR,EUR,USD_G10,0.3333,3
+GBP BGN Curncy,FX_Carry,GBP,GBP,USD_G10,0.3333,3
+IDR BGN Curncy,FX_Carry,IDR,IDR,USD_Asia,0,5
+INR BGN Curncy,FX_Carry,INR,INR,USD_Asia,0.3333,5
+JPY BGN Curncy,FX_Carry,JPY,JPY,USD_G10,0.3334,3
+KRW BGN Curncy,FX_Carry,KRW,KRW,USD_Asia,0.3333,5
+MXN BGN Curncy,FX_Carry,MXN,MXN,USD_LatAm,0.4,6
+NOK BGN Curncy,FX_Carry,NOK,NOK,USD_G10,0,3
+NZD BGN Curncy,FX_Carry,NZD,NZD,USD_G10,0,3
+RUB BGN Curncy,FX_Carry,RUB,RUB,USD_Emea,0.1,4
+SGD BGN Curncy,FX_Carry,SGD,SGD,USD_Asia,0,5
+TRY BGN Curncy,FX_Carry,TRY,TRY,USD_Emea,0.1,4
+TWD BGN Curncy,FX_Carry,TWD,TWD,USD_Asia,0.3334,5
+ZAR BGN Curncy,FX_Carry,ZAR,ZAR,USD_Emea,0.4,4
+BBSW3M Index,FI_Carry,AUD,AU_10yr,AU_10yr,-1,1
+US0003M Index,FI_Carry,USD,US_10yr,US_10yr,-1,1
+EUR003M Index,FI_Carry,EUR,DE_10yr,DE_10yr,-1,1
+BP0003M Index,FI_Carry,GBP,UK_10yr,UK_10yr,-1,1
+CZK BGN Curncy,FX_Carry,CZK,CZK,USD_CEE3,0.3333,3.5
+HUF BGN Curncy,FX_Carry,HUF,HUF,USD_CEE3,0.3333,3.5
+PLN BGN Curncy,FX_Carry,PLN,PLN,USD_CEE3,0.3333,3.5
+H0A0,Credit_Carry,USD,USD,HY_Credit,0.5,8
+HE00,Credit_Carry,EUR,EUR,HY_Credit,0.5,8
+ER00,Credit_Carry,EUR,EUR,IG_Credit,0.5,8
+C0A0,Credit_Carry,USD,USD,IG_Credit,0.5,8
+DGHY,Credit_Carry,USD,USD,EM_Credit,0.75,8
+DGIG,Credit_Carry,USD,USD,EM_Credit,0.25,8

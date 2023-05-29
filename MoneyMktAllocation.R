@@ -54,10 +54,10 @@ mmkt_assets_des = as.data.table(read.csv("DataDesMMkt.csv"))
 
 mmkt_assets =  as.data.table(read.csv("MoneyMktHistoric.csv"))
 mmkt_assets$date= as.Date(mmkt_assets$date,format = '%m/%d/%Y')
-mmkt_assets$X= NULL
+
 mmkt_assets_carry = mmkt_assets[Type=='EY']
 mmkt_assets_carry$Type=NULL
-mmkt_assets_return = mmkt_assets[Type=='TRR']
+mmkt_assets_return = mmkt_assets[Type=='TTR']
 mmkt_assets_return$Type=NULL
 
 # ##1.1 homogeneous data series on the carry ====
@@ -169,9 +169,9 @@ mmkt_assets_return$Type=NULL
 CarryDataTotal = mmkt_assets_carry
 RetDataTotal = mmkt_assets_return
 # Till here necessary to run the last chapter ####
-dataref = as.Date("2023-04-28")
+dataref = as.Date("2023-05-26")
 dataref_max = Sys.Date()
-dataref_min = as.Date("2021-12-01")
+dataref_min = as.Date("2013-12-01")
 
 
 #date to ref for the returns data
@@ -307,66 +307,69 @@ nassets=length(assetSelection)
 #date %in% seq.Date(as.Date("2013-06-01"),as.Date("2014-06-01"),by="1 day")
 ref_selection=reference_ret_global[,assetSelection,with=FALSE]
 date_selection=reference_ret_global[]$date
-cormatrix=cor(ref_selection)
+
 getwd()
 checkperf=as.xts(as.matrix(ref_selection[,]/100),order.by =as.Date(date_selection))
 charts.PerformanceSummary(checkperf[,])
+cormatrix=cor(ref_selection)
+numsize=ifelse(nassets<6,1.5,1)
+textsize=ifelse(nassets<6,1.25,1)
+pals=colorRampPalette(c("darkblue","white","darkred"))(10)
 
-numsize=ifelse(nassets<6,1.5,1.5)
-textsize=ifelse(nassets<6,1.25,1.25)
-pals=colorRampPalette(c("darkblue","white","darkred"))(20)
 
-
-colnames(cormatrix) = mmkt_assets_des$Index[match(colnames(cormatrix),mmkt_assets_des$variable)]
-
+colnames(cormatrix) = mmkt_assets_des$Index[match(colnames(cormatrix),mmkt_assets_des$Code)]
+rownames(cormatrix) = colnames(cormatrix)
 path="C:/Users/eusea/R_charts_output"
-png(height=40, width=40, file=paste(path,"HistCorrelation_Contrib_LongTerm.png",sep="/"), type = "cairo-png",
+png(height=20, width=20, file=paste(path,"HistCorrelation_Contrib_LongTerm.png",sep="/"), type = "cairo-png",
     units = "cm",res=1000)
-par(family="Bahnschrift",mar = rep(1,4),oma=rep(0,4))
-corrplot.mixed(cormatrix,  tl.col = "black", lower.col = pals,
-               number.cex = numsize,
-               cl.cex = textsize,tl.cex = textsize, 
-               upper.col = pals)
+par(family="Calibri",mar = rep(0,4),oma=rep(0,4))
+# corrplot.mixed(cormatrix,  tl.col = "black", lower.col = pals,
+#                number.cex = numsize,diag = FALSE,
+#                cl.cex = textsize,tl.cex = textsize, 
+#                upper.col = pals)
+corrplot(cormatrix,  tl.col = "black", order = 'hclust', addrect = 4,
+               number.cex = numsize,diag = FALSE,col = pals,
+               cl.cex = textsize,tl.cex = textsize)
 dev.off()
 
 
-#rolling correlation
-ut <- upper.tri(cormatrix)
-n <- paste(rownames(cormatrix)[row(cormatrix)[ut]],rownames(cormatrix)[col(cormatrix)[ut]])
-dt_set=ref_selection
-
-rollingcorr.1y <- rollapply(dt_set,
-                            width=252,
-                            FUN = function(Z)
-                            {
-                              return(cor(Z,use="pairwise.complete.obs")[ut])
-                            },
-                            by.column=FALSE, align="right")
-
-colnames(rollingcorr.1y) <- n
-relevant_dates=date_selection[252:length(date_selection)]
-dset_summary=summary(rollingcorr.1y)
-
-rollingcorr.1y.df=data.frame(rollingcorr.1y)
-rollingcorr.1y.df$date=relevant_dates
-
-rollingcorr.1y.melt <- melt(rollingcorr.1y.df,id="date")
-
-corr_evo=ggplot(rollingcorr.1y.melt,aes(x=date)) +
-  geom_area(aes(y=value)) +
-  facet_grid(variable~.) +
-  ylim(c(-1,1)) +
-  scale_colour_economist()+
-  MainChart+
-  theme(axis.text.y = element_text(color = "black", size = 15, family = "Bahnschrift",hjust = 1),
-      axis.text.x = element_text(color = "black", size = 15, family = "Bahnschrift",vjust = 1, angle = 0),
-      axis.title.y = element_blank(),
-      axis.title.x = element_blank())+
-  theme(strip.text.y = element_text(size = 13, angle = 90))
-getwd()
-ggsave(paste(path,"CorrelationEvo",".png",sep=""), plot = corr_evo, device = png,
-       scale = 2, width = 17, height = 10, units = c("cm"),
-       dpi = 600)
+#rolling correlation 
+# ut <- upper.tri(cormatrix)
+# n <- paste(rownames(cormatrix)[row(cormatrix)[ut]],rownames(cormatrix)[col(cormatrix)[ut]])
+# dt_set=ref_selection
+# 
+# rollingcorr.1y <- rollapply(dt_set,
+#                             width=252,
+#                             FUN = function(Z)
+#                             {
+#                               return(cor(Z,use="pairwise.complete.obs")[ut])
+#                             },
+#                             by.column=FALSE, align="right")
+# 
+# colnames(rollingcorr.1y) <- n
+# relevant_dates=date_selection[252:length(date_selection)]
+# dset_summary=summary(rollingcorr.1y)
+# 
+# rollingcorr.1y.df=data.frame(rollingcorr.1y)
+# rollingcorr.1y.df$date=relevant_dates
+# 
+# rollingcorr.1y.melt <- melt(rollingcorr.1y.df,id="date")
+# 
+# corr_evo=ggplot(rollingcorr.1y.melt,aes(x=date)) +
+#   geom_area(aes(y=value)) +
+#   facet_grid(variable~.) +
+#   ylim(c(-1,1)) +
+#   scale_colour_economist()+
+#   MainChart+
+#   theme(axis.text.y = element_text(color = "black", size = 15, family = "Bahnschrift",hjust = 1),
+#       axis.text.x = element_text(color = "black", size = 15, family = "Bahnschrift",vjust = 1, angle = 0),
+#       axis.title.y = element_blank(),
+#       axis.title.x = element_blank())+
+#   theme(strip.text.y = element_text(size = 13, angle = 90))
+# getwd()
+# ggsave(paste(path,"CorrelationEvo",".png",sep=""), plot = corr_evo, device = png,
+#        scale = 2, width = 17, height = 10, units = c("cm"),
+#        dpi = 600)
 
 
 # # generate 3 correlation matrix set
@@ -450,8 +453,8 @@ samplecarry_post_covid$date = NULL
 samplecarry=t(as.matrix(samplecarry_post_covid))
 
 ## selection of the righit matrix ##
-srNames=colnames(selected_rmx)
-
+srNames=colnames(selected_rmx)[-match("CB41",colnames(selected_rmx))]
+selected_rmx=selected_rmx[,..srNames]
 ## 
 
 samplecarry=as.matrix(samplecarry[match(srNames,rownames(samplecarry)),])
@@ -478,7 +481,7 @@ setkey(samplecarryDf,variable)
 
 #2.1 Design frontier EfficientFrontier ####
 
-Select_Asset_Full = colnames(selected_rmx)[match(assetSelection,colnames(selected_rmx))]
+Select_Asset_Full = srNames
 sampleret_EF=as.matrix(selected_rmx)
 
 d_data_fullset=eff.frontier_weight(returns=sampleret_EF,selection=Select_Asset_Full,
@@ -486,12 +489,12 @@ d_data_fullset=eff.frontier_weight(returns=sampleret_EF,selection=Select_Asset_F
                                    max.allocation=wgt_limup[Select_Asset_Full],
                                    min.allocation=wgt_limdown[Select_Asset_Full],
                                    risk.premium.up=2,
-                                   risk.increment=0.00015,
+                                   risk.increment=0.00005,
                                    frequency=252)
 
 
 optpoint = d_data_fullset[d_data_fullset$sharpe==max(d_data_fullset$sharpe),]
-optpoint6pct = d_data_fullset[round(d_data_fullset$Exp.Return,1)==6,]
+optpoint6pct = d_data_fullset[round(d_data_fullset$Exp.Return,2)==7.01,]
 
 optpoint = optpoint
 # save the three set
@@ -546,11 +549,12 @@ y_breaks=seq(ymin,ymax,y_gap)
 
 
 xmin=floor(min(0,d_data_fullset$Std.Dev,AdditionalStats$Vol))
-xmax=4
+xmax=7.5
 x_gap=(xmax-xmin)/5
 x_breaks=seq(xmin,xmax,x_gap)
 
 setkey(AdditionalStats2,variable)
+setnames(mmkt_assets_des,"Code","variable")
 setkey(mmkt_assets_des,variable)
 AdditionalStats2=AdditionalStats2[mmkt_assets_des]
 
@@ -563,18 +567,17 @@ OpportunitySet=ggplot() +
   # geom_point(data=optpoint, aes(x=Std.Dev, y=Exp.Return),
   #            fill="black", size=4,shape=23) +
   geom_point(data=optpointDB, aes(x=Std.Dev, y=Exp.Return,fill=mx_ref),
-             size=7,shape=23) +
+             size=8,shape=23) +
   geom_point(data=optpoint6pct, aes(x=Std.Dev, y=Exp.Return,fill="6% Percent Target"),
-             size=7,shape=23) +
+             size=8,shape=23) +
   guides(fill=guide_legend(title="Regime"),
          color=guide_legend(title="Regime"))+
   # geom_hline(yintercept=optpoint$Exp.Return,linetype="dashed", color="black")+
   # geom_vline(xintercept =optpoint$Std.Dev ,linetype="dashed",color="black")+
   # geom_hline(yintercept =optpoint_no_FX$Exp.Return ,linetype="dashed",color="black")+
   geom_point(data=AdditionalStats2[!is.na(value)& mx_ref  == "global"], aes(x=Vol, y=expRet),size=4,color="gray") +
-  geom_text_repel(data=AdditionalStats2[!is.na(value) & mx_ref  == "global"],aes(x=Vol, y=expRet,label=paste(Index,", ",round(expRet,1),
-                                                                                                             " Vol: ",round(Vol,1),sep="")), family="Bahnschrift",
-                  max.overlaps = 50,size=6)+
+  geom_text_repel(data=AdditionalStats2[!is.na(value) & mx_ref  == "global"],aes(x=Vol, y=expRet,label=Index), family="Calibri",
+                  max.overlaps = 50,size=5)+
   # scale_color_gradient2(low = "red", mid = "white", 
   #                       high = "darkblue", midpoint = 0,
   #                       limits = c(mean(wgt_limdown), max1),breaks=seq(w_min,w_max,w_gap),
@@ -583,12 +586,12 @@ OpportunitySet=ggplot() +
         panel.grid.major =element_line(colour = "gray85",linetype = "dotted"),
         text=element_text(size=25),
         plot.title=element_text(size=20, color="gray"))+
-  theme(axis.text.y = element_text(color = "black", size = 24, family = "Bahnschrift"),
-        axis.text.x = element_text(color = "black", size = 24, family = "Bahnschrift"),
-        axis.title.x = element_text(color = "black", size = 24, family = "Bahnschrift"),
-        axis.title.y = element_text(color = "black", size = 24, family = "Bahnschrift"))+
+  theme(axis.text.y = element_text(color = "black", size = 24, family = "Calibri"),
+        axis.text.x = element_text(color = "black", size = 24, family = "Calibri"),
+        axis.title.x = element_text(color = "black", size = 24, family = "Calibri"),
+        axis.title.y = element_text(color = "black", size = 24, family = "Calibri"))+
   theme(legend.position = "bottom",
-        legend.text = element_text(family = "Bahnschrift", size = 12),
+        legend.text = element_text(family = "Calibri", size = 15),
         legend.title = element_blank())+
   #guides(guide_legend(title="Alloc %"))+
   geom_hline(yintercept=0,linetype="dotted", color="black")+
@@ -597,7 +600,7 @@ OpportunitySet=ggplot() +
                      limits = c(ymin, ymax)) +
   scale_x_continuous(breaks = x_breaks,
                      limits = c(xmin, xmax)) +
-  scale_fill_economist(label = c("6% Target Return","Max Sharpe Portfolio",
+  scale_fill_economist(label = c("7% Target Return","Max Sharpe Portfolio",
                                  "Stress"))+
   scale_colour_economist(label = c("Efficient Frontier"))+
   #ggtitle("Efficient Frontier\nand Optimal Portfolio") +

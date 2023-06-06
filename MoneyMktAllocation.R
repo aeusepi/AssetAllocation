@@ -171,7 +171,7 @@ RetDataTotal = mmkt_assets_return
 # Till here necessary to run the last chapter ####
 dataref = as.Date("2023-05-26")
 dataref_max = Sys.Date()
-dataref_min = as.Date("2013-12-01")
+dataref_min = as.Date("2019-08-01")
 
 
 #date to ref for the returns data
@@ -187,6 +187,7 @@ sampleret_riskmx=sampleret2[complete.cases(sampleret2)]
 ###1.5.1 Carry Analysis ####
 CarryChangeStats = as.data.table(melt(CarryDataTotal,id="date"))
 CarryChangeStats$YY=format(CarryChangeStats$date,"%Y")
+CarryChangeStats$value = as.numeric(CarryChangeStats$value)
 CarryChangeStats2=CarryChangeStats[,list(date,value,YY,VarZ=value - c(NA,value[-.N])),
                                    by=c("variable")]
 CarryChangeStats3=CarryChangeStats2[,list(date,value,VarZ,
@@ -214,7 +215,7 @@ setkey(CarryChangeStats4,variable,date,YY)
 
 
 ###1.5.2 Volatility Analysis ####
-VolDb = as.data.table(melt(RetDataTotal,id="date"))
+VolDb = as.data.table(melt(RetDataTotal[date>dataref_min],id="date"))
 VolDb.1= VolDb[,list(date,DailyR=value,
                      M3_RelVol=rollapply(value, 66, sd,  by = 1, fill = NA,align = "right",
                                          na.rm=TRUE)*sqrt(252)),
@@ -442,7 +443,7 @@ dev.off()
 # 
 # # Return matrix selection #
 
-selected_rmx=RetDataTotal
+selected_rmx=RetDataTotal[date>"2019-08-01"]
 selected_rmx$date = NULL
 
 #selecting the data
@@ -451,7 +452,9 @@ samplecarry_post_covid$date = NULL
 
 # running the optimization
 samplecarry=t(as.matrix(samplecarry_post_covid))
-
+labs=rownames(samplecarry)
+samplecarry=apply(samplecarry,2,as.numeric)
+rownames(samplecarry) = labs
 ## selection of the righit matrix ##
 srNames=colnames(selected_rmx)[-match("CB41",colnames(selected_rmx))]
 selected_rmx=selected_rmx[,..srNames]
@@ -483,9 +486,10 @@ setkey(samplecarryDf,variable)
 
 Select_Asset_Full = srNames
 sampleret_EF=as.matrix(selected_rmx)
+sampleret_EF= apply(sampleret_EF,2,as.numeric)
 
 d_data_fullset=eff.frontier_weight(returns=sampleret_EF,selection=Select_Asset_Full,
-                                   exp_ret=samplecarry,short="yes",
+                                   exp_ret=samplecarry,short="no",
                                    max.allocation=wgt_limup[Select_Asset_Full],
                                    min.allocation=wgt_limdown[Select_Asset_Full],
                                    risk.premium.up=2,
@@ -494,7 +498,7 @@ d_data_fullset=eff.frontier_weight(returns=sampleret_EF,selection=Select_Asset_F
 
 
 optpoint = d_data_fullset[d_data_fullset$sharpe==max(d_data_fullset$sharpe),]
-optpoint6pct = d_data_fullset[round(d_data_fullset$Exp.Return,2)==7.01,]
+optpoint6pct = d_data_fullset[round(d_data_fullset$Exp.Return,2)==7.00,]
 
 optpoint = optpoint
 # save the three set
@@ -607,7 +611,7 @@ OpportunitySet=ggplot() +
   labs(x="Expected Volatility %", y="Expected Return %")
 
 
-getwd()
+path=getwd()
 ggsave(paste(path,"/opportunitySet_ScenarioS",".png",sep=""), plot = OpportunitySet, device = png,
        scale = 2, width = 20, height = 12, units = c("cm"),
        dpi = 600)

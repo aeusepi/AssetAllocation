@@ -20,3 +20,5 @@ Federal Reserve 90 Day A2 P2 Nonfinancial Commercial Paper,CP Non Fin,CPDR92NC
 Federal Reserve 90 Day AA Financial Commercial Paper ,CP Fin,CPDR9AFC
 Overnight Deposit,O/N Deposit,USDR1T
 Palmer Square CLO AAA ,CLO AAA,PCLOAAA
+"SASB Floating - Multifamily,AAA,Full Extension",SASB MF,SASB_MF
+"SASB Floating - Industrial,AAA,Full Extension",SASB Ind,SASB_Ind

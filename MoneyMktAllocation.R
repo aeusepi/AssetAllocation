@@ -20,10 +20,12 @@ if (info["login"]=="eusea"){
 lapply(libs, require, 
        lib.loc = lib_loc,
        character.only = TRUE)
-lapply(lib2, require, 
-       lib.loc = lib_loc,
-       character.only = TRUE)
-#update.packages()
+# lapply(lib2, require, 
+#        lib.loc = lib_loc,
+#        character.only = TRUE)
+# 
+# install.packages("rlang")
+
 loadfonts(device = "win")
 
 source("ChartLayout.R")
@@ -36,156 +38,147 @@ windowsFonts(
 )
 loadfonts()
 
-
-
-windowsFonts(
-  Bahnschrift = windowsFont("Bahnschrift"), #the font we need to apply
-  B = windowsFont("Bookman Old Style"),
-  C = windowsFont("Comic Sans MS"),
-  D = windowsFont("Symbol")
-)
-loadfonts()
-
 rm(list = ls())
 
 source("EfficientFrontCredit.R")
 source("ChartLayout.R")
 
 
-load("CarryDataCcy.rda")
-load("FX_Rates_Returns_All.rda")
+# load("CarryDataCcy.rda")
+# load("FX_Rates_Returns_All.rda")
 
 #ReturnDataTotal=ReturnDataTotal1
 #1. Creating the ptf expected returns for AUD portfolio  -----
-Assets = as.data.table(read.csv("DataDes.csv"))
-setkey(Assets,variable)
-setkey(CarryDataTotal,variable)
-Portfolio = as.data.table(read.csv("PortfolioDes.csv"))
-setkey(Portfolio,Portfolio)
-##1.1 homogeneous data series on the carry ====
-asset_test = cast(CarryDataTotal,date ~ variable, fun.aggregate = mean,fill = NA,
-                  value="value")
-asset_test=asset_test[complete.cases(asset_test),]
-asset_test = as.data.table(melt(asset_test,id="date"))
-asset_test= asset_test[,list(date,variable,
-                             value=na.locf(value,na.rm = FALSE))]
 
-setkey(asset_test,variable)
+mmkt_assets_des = as.data.table(read.csv("DataDesMMkt.csv"))
 
-##1.2 Combination of single instrument in oreder to create asset carry ====
-asset_db=Assets[asset_test,allow.cartesian=TRUE]
+mmkt_assets =  as.data.table(read.csv("MoneyMktHistoric.csv"))
+mmkt_assets$date= as.Date(mmkt_assets$date,format = '%m/%d/%Y')
 
-asset_db_ts=asset_db[,list(value=sum(value*Weight)),
-                                  by=c("Type","date","Portfolio","Rk")]
+mmkt_assets_carry = mmkt_assets[Type=='EY']
+mmkt_assets_carry$Type=NULL
+mmkt_assets_return = mmkt_assets[Type=='TTR']
+mmkt_assets_return$Type=NULL
 
-asset_db_last=asset_db_ts[date==last(date)]
-
-
-
-# Asset Data Selection ####
-assetSelection = c("US_2s10s","USD_G10","USD_LatAm")
-### 1.2.1 Plotting data #####
-carry=ggplot(data=asset_db_last[Portfolio %in% assetSelection],
-             aes(x=reorder(Portfolio,-Rk),y=ifelse(Type=="FX_Carry",-value,value),
-                 fill=Portfolio,label=ifelse(Type=="FX_Carry",-round(value,2),round(value,2))))+
-  geom_bar(stat='identity')+
-  scale_fill_manual(values = c("coral","lightblue","lightgreen"))+
-  geom_text(size = 3, check_overlap = TRUE, position = position_stack(vjust = 0.5),
-            family="Bahnschrift")+
-  theme(panel.background=element_rect(fill="white"),
-        panel.grid.major =element_line(colour = "gray85",linetype = "dashed"),
-        #text=element_text(size=12,color="black"),
-        plot.title=element_text(size=20, color="darkred"))+
-  theme(axis.text.y = element_text(color = "black", size = 10, family = "Bahnschrift"),
-        axis.text.x = element_text(color = "black", size = 14, family = "Bahnschrift"),
-        axis.title.x = element_blank(),
-        axis.title.y = element_blank(),
-        axis.text=element_text(size=8,family = "Bahnschrift",color = "White"))+
-  theme(legend.position = "bottom",
-        legend.text = element_text(family = "Bahnschrift", size = 10),
-        legend.title = element_blank())+
-  geom_hline(yintercept=0,linetype="dashed", color="black")+
-  coord_flip()
-
-ggsave(paste("carryUSD",".png",sep=""), plot = carry, device = png,
-       scale = 1, width = 12, height = 18, units = c("cm"),
-       dpi = 100)
+# ##1.1 homogeneous data series on the carry ====
+# asset_test = as.data.table(melt(mmkt_assets_carry,id="date"))
+# asset_test= asset_test[,list(date,variable,
+#                              value=na.locf(value,na.rm = FALSE))]
+# 
+# setkey(asset_test,variable)
+# setkey(mmkt_assets_des,variable)
+# asset_test_ = asset_test[mmkt_assets_des]
+# ##1.2 Combination of single instrument in oreder to create asset carry ====
+# asset_db_last=asset_test_[date==last(date)]
+# 
+# # Asset Data Selection ####
+# assetSelection = unique(asset_db_last$variable)
+# ### 1.2.1 Plotting data #####
+# carry=ggplot(data=asset_db_last[variable %in% assetSelection],
+#              aes(x=variable,y=value,
+#                  fill=variable,label=ifelse(round(value,2))))+
+#   geom_bar(stat = 'identity')+
+#   geom_text(size = 3, check_overlap = TRUE, position = position_stack(vjust = 0.5),
+#             family="Bahnschrift")+
+#   theme(panel.background=element_rect(fill="white"),
+#         panel.grid.major =element_line(colour = "gray85",linetype = "dashed"),
+#         #text=element_text(size=12,color="black"),
+#         plot.title=element_text(size=20, color="darkred"))+
+#   theme(axis.text.y = element_text(color = "black", size = 10, family = "Bahnschrift"),
+#         axis.text.x = element_text(color = "black", size = 14, family = "Bahnschrift"),
+#         axis.title.x = element_blank(),
+#         axis.title.y = element_blank(),
+#         axis.text=element_text(size=8,family = "Bahnschrift",color = "White"))+
+#   theme(legend.position = "bottom",
+#         legend.text = element_text(family = "Bahnschrift", size = 10),
+#         legend.title = element_blank())+
+#   geom_hline(yintercept=0,linetype="dashed", color="black")+
+#   coord_flip()
+# 
+# ggsave(paste("carryUSD",".png",sep=""), plot = carry, device = png,
+#        scale = 1, width = 12, height = 18, units = c("cm"),
+#        dpi = 100)
 
 ##1.3 Plotting evolution of specif time series ====
 
-
-asset_db_evo = asset_db[Portfolio %in% assetSelection]
-asset_db_evo=asset_db_evo[,list(value=sum(value*Weight),rk=mean(Rk)),
-                            by=c("Type","Portfolio","date")]
-
-#evolution of the carry component and percentile ranking ove rthe last 5yrs
-USD_Carry=ggplot()+
-  geom_area(data=asset_db_evo[],aes(date,ifelse(Type=="FX_Carry",-value,value),fill=Portfolio),
-           stat='identity')+
-  scale_fill_manual(values = c("coral","lightblue","lightgreen"))+
-  facet_wrap(.~Portfolio, ncol = 1)+
-  scale_y_continuous(limits = (c(-15,10)),breaks = seq(-15,10,5))+
-  geom_text(size = 3, check_overlap = TRUE, position = position_stack(vjust = 0.5),family="Bahnschrift")+
-  theme(panel.background=element_rect(fill="white"),
-        panel.grid.major =element_line(colour = "gray85",linetype = "dashed"),
-        #text=element_text(size=12,color="black"),
-        plot.title=element_text(size=20, color="darkred"))+
-  theme(axis.text.y = element_text(color = "black", size = 12, family = "Bahnschrift"),
-        axis.text.x = element_text(color = "black", size = 12, family = "Bahnschrift"),
-        axis.title.x = element_blank(),
-        axis.title.y = element_blank(),
-        strip.text.x = element_text(size = 10, family ="Bahnschrift"),
-        axis.text=element_text(size=10,family = "Bahnschrift",color = "White"))+
-  theme(legend.position = "bottom",
-        legend.text = element_text(family = "Bahnschrift", size = 10),
-        legend.title = element_blank())+
-  geom_hline(yintercept=0,linetype="dashed", color="black")
-
-ggsave(paste("carryUSD_ts",".png",sep=""), plot = USD_Carry, device = png,
-       scale = 1, width = 13, height = 15, units = c("cm"),
-       dpi = 100)
+# 
+# asset_db_evo = asset_db[Portfolio %in% assetSelection]
+# asset_db_evo=asset_db_evo[,list(value=sum(value*Weight),rk=mean(Rk)),
+#                             by=c("Type","Portfolio","date")]
+# 
+# #evolution of the carry component and percentile ranking ove rthe last 5yrs
+# USD_Carry=ggplot()+
+#   geom_area(data=asset_db_evo[],aes(date,ifelse(Type=="FX_Carry",-value,value),fill=Portfolio),
+#            stat='identity')+
+#   scale_fill_manual(values = c("coral","lightblue","lightgreen"))+
+#   facet_wrap(.~Portfolio, ncol = 1)+
+#   scale_y_continuous(limits = (c(-15,10)),breaks = seq(-15,10,5))+
+#   geom_text(size = 3, check_overlap = TRUE, position = position_stack(vjust = 0.5),family="Bahnschrift")+
+#   theme(panel.background=element_rect(fill="white"),
+#         panel.grid.major =element_line(colour = "gray85",linetype = "dashed"),
+#         #text=element_text(size=12,color="black"),
+#         plot.title=element_text(size=20, color="darkred"))+
+#   theme(axis.text.y = element_text(color = "black", size = 12, family = "Bahnschrift"),
+#         axis.text.x = element_text(color = "black", size = 12, family = "Bahnschrift"),
+#         axis.title.x = element_blank(),
+#         axis.title.y = element_blank(),
+#         strip.text.x = element_text(size = 10, family ="Bahnschrift"),
+#         axis.text=element_text(size=10,family = "Bahnschrift",color = "White"))+
+#   theme(legend.position = "bottom",
+#         legend.text = element_text(family = "Bahnschrift", size = 10),
+#         legend.title = element_blank())+
+#   geom_hline(yintercept=0,linetype="dashed", color="black")
+# 
+# ggsave(paste("carryUSD_ts",".png",sep=""), plot = USD_Carry, device = png,
+#        scale = 1, width = 13, height = 15, units = c("cm"),
+#        dpi = 100)
 
 
 #1.4 Data elaboration for risk-return measures ####
 ## 1.4.2 Return analysis #### 
 # Creation of asset carry from the combination of instrument carry
-CarryDataTotal = asset_db[,list(value=sum(value*Weight),rk=mean(Rk)),
-                          by=c("Portfolio","date","Type")]
+# CarryDataTotal = asset_db[,list(value=sum(value*Weight),rk=mean(Rk)),
+#                           by=c("Portfolio","date","Type")]
+# 
+# CarryDataTotal=cast(CarryDataTotal,date ~ Portfolio, fun.aggregate = mean,value="value")
+# # preparing the returns dataset
+# ReturnDataTotal=melt.data.table(RetunrnData_ZeroNARep,id="date")
+# setkey(ReturnDataTotal,variable)
+# ReturnDataTotal_= Assets[ReturnDataTotal,allow.cartesian = TRUE]
+# 
+# # final db for data base analysis
+# ReturnDataTotal_=ReturnDataTotal_[,list(value=sum(value*Weight)),
+#                                   by=c("Type","date","Portfolio","Rk")]
+# 
+# # returns data to run the optimization
+# RetDataTotal=cast(ReturnDataTotal_,date ~ Portfolio, fun.aggregate = mean,value="value")
+# 
+# 
+# # organizing the data set
+# setcolorder(CarryDataTotal, colnames(RetDataTotal))
+# CarryDataTotal$date=as.Date(CarryDataTotal$date)
+# # weekly data
+# ddates = CarryDataTotal$date
+# 
+# CarryDataTotal[] <- lapply(CarryDataTotal, function(x) as.numeric(as.character(x)))
+# CarryDataTotal$date=ddates
+# 
+# CarryDataTotal=as.data.frame(CarryDataTotal)
 
-CarryDataTotal=cast(CarryDataTotal,date ~ Portfolio, fun.aggregate = mean,value="value")
-# preparing the returns dataset
-ReturnDataTotal=melt.data.table(RetunrnData_ZeroNARep,id="date")
-setkey(ReturnDataTotal,variable)
-ReturnDataTotal_= Assets[ReturnDataTotal,allow.cartesian = TRUE]
-
-# final db for data base analysis
-ReturnDataTotal_=ReturnDataTotal_[,list(value=sum(value*Weight)),
-                                  by=c("Type","date","Portfolio","Rk")]
-
-# returns data to run the optimization
-RetDataTotal=cast(ReturnDataTotal_,date ~ Portfolio, fun.aggregate = mean,value="value")
-
-
-# organizing the data set
-setcolorder(CarryDataTotal, colnames(RetDataTotal))
-CarryDataTotal$date=as.Date(CarryDataTotal$date)
-# weekly data
-ddates = CarryDataTotal$date
-
-CarryDataTotal[] <- lapply(CarryDataTotal, function(x) as.numeric(as.character(x)))
-CarryDataTotal$date=ddates
-
-CarryDataTotal=as.data.frame(CarryDataTotal)
-
-
+# ref to the mmkt data
+CarryDataTotal = mmkt_assets_carry
+RetDataTotal = mmkt_assets_return
 # Till here necessary to run the last chapter ####
-dataref = as.Date("2022-10-28")
+dataref = as.Date("2023-05-26")
+dataref_max = Sys.Date()
+dataref_min = as.Date("2019-08-01")
+
 
 #date to ref for the returns data
-dataref_Adj= min(nextweekday(dataref,6),max(CarryDataTotal$date))
+dataref_Adj= dataref #datarefmin(nextweekday(dataref,6),max(CarryDataTotal$date))
 
-#reference volatility before the ref date
-sampleret2=ReturnDataTotal_[date<=dataref_Adj]
+#reference volatility before the ref date moneymkt
+sampleret2=mmkt_assets_return[date>dataref_min]
 
 #1.5 Picking the return Matrix ####
 sampleret_riskmx=sampleret2[complete.cases(sampleret2)]
@@ -194,6 +187,7 @@ sampleret_riskmx=sampleret2[complete.cases(sampleret2)]
 ###1.5.1 Carry Analysis ####
 CarryChangeStats = as.data.table(melt(CarryDataTotal,id="date"))
 CarryChangeStats$YY=format(CarryChangeStats$date,"%Y")
+CarryChangeStats$value = as.numeric(CarryChangeStats$value)
 CarryChangeStats2=CarryChangeStats[,list(date,value,YY,VarZ=value - c(NA,value[-.N])),
                                    by=c("variable")]
 CarryChangeStats3=CarryChangeStats2[,list(date,value,VarZ,
@@ -221,10 +215,10 @@ setkey(CarryChangeStats4,variable,date,YY)
 
 
 ###1.5.2 Volatility Analysis ####
-VolDb = as.data.table(melt(RetDataTotal,id="date"))
+VolDb = as.data.table(melt(RetDataTotal[date>dataref_min],id="date"))
 VolDb.1= VolDb[,list(date,DailyR=value,
                      M3_RelVol=rollapply(value, 66, sd,  by = 1, fill = NA,align = "right",
-                                         na.rm=TRUE)*sqrt(252)*100),
+                                         na.rm=TRUE)*sqrt(252)),
                by="variable"]
 VolDb.1$YY=format(VolDb.1$date,"%Y")
 VolDb.1[, VolVar:= M3_RelVol-c(NA,M3_RelVol[-.N]), 
@@ -256,7 +250,7 @@ ggplot(data=subset(RefDb,date==c(dd_plot)),
   # geom_point(data=optpoint, aes(x=Std.Dev, y=Exp.Return),
   #            color=ealred, size=6) +
   #geom_smooth( method=lm, se=FALSE)+
-  geom_text_repel(aes(x=VolVarYTD, y=YTD_Var_Bps,label=variable),
+  geom_text_repel(aes(x=VolVarYTD, y=YTD_Var_Bps,label=paste(variable,round(value,1),sep=",")),
                   family = "Bahnschrift",max.overlaps = 15)+
   ylab("Carry Change in Bps")+
   xlab("Volatility Change in % Points")+
@@ -264,7 +258,7 @@ ggplot(data=subset(RefDb,date==c(dd_plot)),
                         high = "red", midpoint = 0,
                         limits = c(minn, maxn), name="Carry")+
   scale_size_continuous(range = c(minn1, maxn1),
-             breaks = round(seq(minn1,maxn1,5),0),name = "Realized Volatility")+
+             breaks = round(seq(minn1,maxn1,10),0),name = "Realized Volatility")+
   theme(panel.background=element_rect(fill="white"),
         panel.grid.major =element_line(colour = "gray85",linetype = "dashed"),
         text=element_text(size=12,color="black"),
@@ -277,7 +271,7 @@ ggplot(data=subset(RefDb,date==c(dd_plot)),
         legend.text = element_text(family = "Bahnschrift", size = 12),
         legend.title = element_text(family = "Bahnschrift", size = 12))+
   geom_hline(yintercept=0,linetype="dashed", color="black")+
-  geom_text(aes(x=-6,y=15),label=dd_plot,
+  geom_text(aes(x=1.2,y=2),label=dd_plot,
             family = "Bahnschrift",size=4)
 
 
@@ -285,15 +279,15 @@ ggplot(data=subset(RefDb,date==c(dd_plot)),
 #last carry figures
 samplecarry_post_covid = as.data.table(CarryDataTotal)[date == dd_plot]
 
-# specific selection based on rates curves
-Cuvedt=as.data.table(CarryDataTotal)[US_2s10s < 0]
-CUrve2s10s_neg=Cuvedt$date
-#period in which the curve reached a cycle low
-Cycle1= seq.Date(as.Date("2000-04-28"),as.Date("2000-04-28")+365,by="1 day")
-Cycle2= seq.Date(as.Date("2006-11-24"),as.Date("2006-11-24")+365,by="1 day")
-Cycle3= seq.Date(as.Date("2019-08-30"),as.Date("2019-08-30")+365,by="1 day")
+# # specific selection based on rates curves
+# Cuvedt=as.data.table(CarryDataTotal)[US_2s10s < 0]
+# CUrve2s10s_neg=Cuvedt$date
+# #period in which the curve reached a cycle low
+# Cycle1= seq.Date(as.Date("2000-04-28"),as.Date("2000-04-28")+365,by="1 day")
+# Cycle2= seq.Date(as.Date("2006-11-24"),as.Date("2006-11-24")+365,by="1 day")
+# Cycle3= seq.Date(as.Date("2019-08-30"),as.Date("2019-08-30")+365,by="1 day")
 
-Stats4_= CarryChangeStats4[date == dd_plot_preCovid]
+Stats4_= CarryChangeStats4[date == dataref]
 setkey(Stats4_,variable)
 
 Stats4_$date=NULL
@@ -302,148 +296,155 @@ reference_ret=as.data.table(RetDataTotal)
 reference_ret$date = NULL
 
 # 3 different return sets
-reference_ret_cycleflat=as.data.table(RetDataTotal)[date %in% c(Cycle1,Cycle2,Cycle3),]
+#reference_ret_cycleflat=as.data.table(RetDataTotal)[date %in% c(Cycle1,Cycle2,Cycle3),]
 reference_ret_global=as.data.table(RetDataTotal)
-reference_ret_recent=as.data.table(RetDataTotal)[date > as.Date("2020-12-31"),]
+#reference_ret_recent=as.data.table(RetDataTotal)[date > as.Date("2020-12-31"),]
 
 dateset=reference_ret_global$date
 
 # Correlation plot analisis
-assetSelection = c("US_2s10s","USD_G10","USD_LatAm")
+assetSelection = colnames(reference_ret_global)[-1]
 nassets=length(assetSelection)
 #date %in% seq.Date(as.Date("2013-06-01"),as.Date("2014-06-01"),by="1 day")
 ref_selection=reference_ret_global[,assetSelection,with=FALSE]
 date_selection=reference_ret_global[]$date
+
+getwd()
+checkperf=as.xts(as.matrix(ref_selection[,]/100),order.by =as.Date(date_selection))
+charts.PerformanceSummary(checkperf[,])
 cormatrix=cor(ref_selection)
-getwd()
-checkperf=as.xts(as.matrix(ref_selection[,]),order.by =as.Date(date_selection))
-charts.PerformanceSummary(checkperf["2021",])
+numsize=ifelse(nassets<6,1.5,1)
+textsize=ifelse(nassets<6,1.25,1)
+pals=colorRampPalette(c("darkblue","white","darkred"))(10)
 
-numsize=ifelse(nassets<6,1.25,0.5)
-textsize=ifelse(nassets<6,1.25,0.5)
 
-path="C:/Users/eusep/OneDrive/Documenti/Macro Framework/Asset Allocation/Data"
-png(height=18, width=18, file=paste(path,"HistCorrelation_Contrib_LongTerm.png",sep="/"), type = "cairo-png",
+colnames(cormatrix) = mmkt_assets_des$Index[match(colnames(cormatrix),mmkt_assets_des$Code)]
+rownames(cormatrix) = colnames(cormatrix)
+path="C:/Users/eusea/R_charts_output"
+png(height=20, width=20, file=paste(path,"HistCorrelation_Contrib_LongTerm.png",sep="/"), type = "cairo-png",
     units = "cm",res=1000)
-par(family="Bahnschrift",mar = rep(1,4),oma=rep(0,4))
-corrplot.mixed(cormatrix,  tl.col = "black", lower.col = "black",number.cex = numsize,
-               cl.cex = textsize,tl.cex = textsize, 
-               upper.col =colorRampPalette(c("darkblue","white","darkred"))(100))
+par(family="Calibri",mar = rep(0,4),oma=rep(0,4))
+# corrplot.mixed(cormatrix,  tl.col = "black", lower.col = pals,
+#                number.cex = numsize,diag = FALSE,
+#                cl.cex = textsize,tl.cex = textsize, 
+#                upper.col = pals)
+corrplot(cormatrix,  tl.col = "black", order = 'hclust', addrect = 4,
+               number.cex = numsize,diag = FALSE,col = pals,
+               cl.cex = textsize,tl.cex = textsize)
 dev.off()
 
 
-#rolling correlation
-ut <- upper.tri(cormatrix)
-n <- paste(rownames(cormatrix)[row(cormatrix)[ut]],rownames(cormatrix)[col(cormatrix)[ut]])
-dt_set=ref_selection
-
-rollingcorr.1y <- rollapply(dt_set,
-                            width=252,
-                            FUN = function(Z)
-                            {
-                              return(cor(Z,use="pairwise.complete.obs")[ut])
-                            },
-                            by.column=FALSE, align="right")
-
-colnames(rollingcorr.1y) <- n
-relevant_dates=date_selection[252:length(date_selection)]
-dset_summary=summary(rollingcorr.1y)
-
-rollingcorr.1y.df=data.frame(rollingcorr.1y)
-rollingcorr.1y.df$date=relevant_dates
-
-rollingcorr.1y.melt <- melt(rollingcorr.1y.df,id="date")
-
-corr_evo=ggplot(rollingcorr.1y.melt,aes(x=date)) +
-  geom_area(aes(y=value)) +
-  facet_grid(variable~.) +
-  ylim(c(-1,1)) +
-  scale_colour_economist()+
-  MainChart+
-  theme(axis.text.y = element_text(color = "black", size = 15, family = "Bahnschrift",hjust = 1),
-      axis.text.x = element_text(color = "black", size = 15, family = "Bahnschrift",vjust = 1, angle = 0),
-      axis.title.y = element_blank(),
-      axis.title.x = element_blank())+
-  theme(strip.text.y = element_text(size = 13, angle = 90))
-getwd()
-ggsave(paste("CorrelationEvo",".png",sep=""), plot = corr_evo, device = png,
-       scale = 2, width = 17, height = 10, units = c("cm"),
-       dpi = 600)
-
-
-# generate 3 correlation matrix set
-cormatrix_LT=cormatrix
-cormatrix_stressed=cormatrix
-cormatrix_mild=cormatrix
-
-vol_assets=apply(ref_selection,2,sd)
-expret_assets=samplecarry_post_covid[,assetSelection,with=FALSE]/100/252
+#rolling correlation 
+# ut <- upper.tri(cormatrix)
+# n <- paste(rownames(cormatrix)[row(cormatrix)[ut]],rownames(cormatrix)[col(cormatrix)[ut]])
+# dt_set=ref_selection
+# 
+# rollingcorr.1y <- rollapply(dt_set,
+#                             width=252,
+#                             FUN = function(Z)
+#                             {
+#                               return(cor(Z,use="pairwise.complete.obs")[ut])
+#                             },
+#                             by.column=FALSE, align="right")
+# 
+# colnames(rollingcorr.1y) <- n
+# relevant_dates=date_selection[252:length(date_selection)]
+# dset_summary=summary(rollingcorr.1y)
+# 
+# rollingcorr.1y.df=data.frame(rollingcorr.1y)
+# rollingcorr.1y.df$date=relevant_dates
+# 
+# rollingcorr.1y.melt <- melt(rollingcorr.1y.df,id="date")
+# 
+# corr_evo=ggplot(rollingcorr.1y.melt,aes(x=date)) +
+#   geom_area(aes(y=value)) +
+#   facet_grid(variable~.) +
+#   ylim(c(-1,1)) +
+#   scale_colour_economist()+
+#   MainChart+
+#   theme(axis.text.y = element_text(color = "black", size = 15, family = "Bahnschrift",hjust = 1),
+#       axis.text.x = element_text(color = "black", size = 15, family = "Bahnschrift",vjust = 1, angle = 0),
+#       axis.title.y = element_blank(),
+#       axis.title.x = element_blank())+
+#   theme(strip.text.y = element_text(size = 13, angle = 90))
+# getwd()
+# ggsave(paste(path,"CorrelationEvo",".png",sep=""), plot = corr_evo, device = png,
+#        scale = 2, width = 17, height = 10, units = c("cm"),
+#        dpi = 600)
 
 
-stress=apply(rollingcorr.1y,2,max)
-mild=apply(rollingcorr.1y,2,min)
+# # generate 3 correlation matrix set
+# cormatrix_LT=cormatrix
+# cormatrix_stressed=cormatrix
+# cormatrix_mild=cormatrix
+# 
+# vol_assets=apply(ref_selection,2,sd)
+# expret_assets=samplecarry_post_covid[,assetSelection,with=FALSE]/100/252
+# 
+# stress=apply(rollingcorr.1y,2,max)
+# mild=apply(rollingcorr.1y,2,min)
+# 
+# cormatrix_stressed[2,1]=stress[1]
+# cormatrix_stressed[1,2]=stress[1]
+# cormatrix_stressed[3,1]=stress[2]
+# cormatrix_stressed[1,3]=stress[2]
+# cormatrix_stressed[3,2]=stress[3]
+# cormatrix_stressed[2,3]=stress[3] 
+# 
+# 
+# cormatrix_mild[2,1]=mild[1]
+# cormatrix_mild[1,2]=mild[1]
+# cormatrix_mild[3,1]=mild[2]
+# cormatrix_mild[1,3]=mild[2]
+# cormatrix_mild[3,2]=mild[3]
+# cormatrix_mild[2,3]=mild[3] 
+# 
+# # plotting the stress and mild correlation matrix
+# 
+# path=paste(getwd(),"/output",sep="")
+# png(height=18, width=18, file=paste(path,"HistCorrelation_Stressed.png",sep="/"), type = "cairo-png",
+#     units = "cm",res=1000)
+# par(family="Bahnschrift",mar = rep(1,4),oma=rep(0,4))
+# corrplot.mixed(cormatrix_stressed,  tl.col = "black", lower.col = "black",number.cex = numsize,
+#                cl.cex = textsize,tl.cex = textsize, 
+#                upper.col =colorRampPalette(c("darkblue","white","darkred"))(100))
+# dev.off()
+# 
+# path="C:/Users/eusep/OneDrive/Documenti/Macro Framework/Asset Allocation/Data"
+# png(height=18, width=18, file=paste(path,"HistCorrelation_mild.png",sep="/"), type = "cairo-png",
+#     units = "cm",res=1000)
+# par(family="Bahnschrift",mar = rep(1,4),oma=rep(0,4))
+# corrplot.mixed(cormatrix_mild,  tl.col = "black", lower.col = "black",number.cex = numsize,
+#                cl.cex = textsize,tl.cex = textsize, 
+#                upper.col =colorRampPalette(c("darkblue","white","darkred"))(100))
+# dev.off()
+# 
+# # creating the covariance matrix
+# new_varcov_stress=cor2cov(cormatrix_stressed,vol_assets)
+# new_varcov_stress_pos=nearPD(new_varcov_stress)
+# new_varcov_stress_mx=as.matrix(new_varcov_stress_pos$mat)
+# 
+# new_varcov_mild=cor2cov(cormatrix_mild,vol_assets)
+# new_varcov_mild_pos=nearPD(new_varcov_mild)
+# new_varcov_mild_mx=as.matrix(new_varcov_mild_pos$mat)
+# 
+# 
+# Drift <- expret_assets
+# Vol <- vol_assets
+# nass=length(Vol)
+# n <- 5366
+# z_stress <- rmvnorm(n, sigma=new_varcov_stress_mx, method="chol")
+# z_mild <- rmvnorm(n, sigma=new_varcov_mild_mx, method="chol")
+# 
+# GBM_Stress <- z_stress + matrix(as.numeric(Drift),n/nass,nrow=n,ncol = nass)
+# colnames(GBM_Stress)=names(vol_assets)
+# GBM_mild <- z_mild + matrix(as.numeric(Drift),n/nass,nrow=n,ncol = nass)
+# colnames(GBM_mild)=names(vol_assets)
+# 
+# # Return matrix selection #
 
-cormatrix_stressed[2,1]=stress[1]
-cormatrix_stressed[1,2]=stress[1]
-cormatrix_stressed[3,1]=stress[2]
-cormatrix_stressed[1,3]=stress[2]
-cormatrix_stressed[3,2]=stress[3]
-cormatrix_stressed[2,3]=stress[3] 
-
-
-cormatrix_mild[2,1]=mild[1]
-cormatrix_mild[1,2]=mild[1]
-cormatrix_mild[3,1]=mild[2]
-cormatrix_mild[1,3]=mild[2]
-cormatrix_mild[3,2]=mild[3]
-cormatrix_mild[2,3]=mild[3] 
-
-# plotting the stress and mild correlation matrix
-
-path=paste(getwd(),"/output",sep="")
-png(height=18, width=18, file=paste(path,"HistCorrelation_Stressed.png",sep="/"), type = "cairo-png",
-    units = "cm",res=1000)
-par(family="Bahnschrift",mar = rep(1,4),oma=rep(0,4))
-corrplot.mixed(cormatrix_stressed,  tl.col = "black", lower.col = "black",number.cex = numsize,
-               cl.cex = textsize,tl.cex = textsize, 
-               upper.col =colorRampPalette(c("darkblue","white","darkred"))(100))
-dev.off()
-
-path="C:/Users/eusep/OneDrive/Documenti/Macro Framework/Asset Allocation/Data"
-png(height=18, width=18, file=paste(path,"HistCorrelation_mild.png",sep="/"), type = "cairo-png",
-    units = "cm",res=1000)
-par(family="Bahnschrift",mar = rep(1,4),oma=rep(0,4))
-corrplot.mixed(cormatrix_mild,  tl.col = "black", lower.col = "black",number.cex = numsize,
-               cl.cex = textsize,tl.cex = textsize, 
-               upper.col =colorRampPalette(c("darkblue","white","darkred"))(100))
-dev.off()
-
-# creating the covariance matrix
-new_varcov_stress=cor2cov(cormatrix_stressed,vol_assets)
-new_varcov_stress_pos=nearPD(new_varcov_stress)
-new_varcov_stress_mx=as.matrix(new_varcov_stress_pos$mat)
-
-new_varcov_mild=cor2cov(cormatrix_mild,vol_assets)
-new_varcov_mild_pos=nearPD(new_varcov_mild)
-new_varcov_mild_mx=as.matrix(new_varcov_mild_pos$mat)
-
-
-Drift <- expret_assets
-Vol <- vol_assets
-nass=length(Vol)
-n <- 5366
-z_stress <- rmvnorm(n, sigma=new_varcov_stress_mx, method="chol")
-z_mild <- rmvnorm(n, sigma=new_varcov_mild_mx, method="chol")
-
-GBM_Stress <- z_stress + matrix(as.numeric(Drift),n/nass,nrow=n,ncol = nass)
-colnames(GBM_Stress)=names(vol_assets)
-GBM_mild <- z_mild + matrix(as.numeric(Drift),n/nass,nrow=n,ncol = nass)
-colnames(GBM_mild)=names(vol_assets)
-
-# Return matrix selection #
-
-selected_rmx=GBM_mild
-
+selected_rmx=RetDataTotal[date>"2019-08-01"]
+selected_rmx$date = NULL
 
 #selecting the data
 samplecarry_post_covid$date = NULL
@@ -451,22 +452,24 @@ samplecarry_post_covid$date = NULL
 
 # running the optimization
 samplecarry=t(as.matrix(samplecarry_post_covid))
-
+labs=rownames(samplecarry)
+samplecarry=apply(samplecarry,2,as.numeric)
+rownames(samplecarry) = labs
 ## selection of the righit matrix ##
-srNames=colnames(selected_rmx)
-
+srNames=colnames(selected_rmx)[-match("CB41",colnames(selected_rmx))]
+selected_rmx=selected_rmx[,..srNames]
 ## 
 
 samplecarry=as.matrix(samplecarry[match(srNames,rownames(samplecarry)),])
 
 samplecarryDf= data.frame(expRet=as.numeric(samplecarry),
                           variable=srNames,
-                          Vol=apply(selected_rmx, 2, sd)*sqrt(252)*100)
+                          Vol=apply(selected_rmx, 2, sd)*sqrt(252))
 
 # set weight limits 
 
 wgt_limup = c(rep(1,length(colnames(selected_rmx))))
-wgt_limdown = c(rep(-1,length(colnames(selected_rmx))))
+wgt_limdown = c(rep(0,length(colnames(selected_rmx))))
 
 w_max=unique(wgt_limup)
 w_min=unique(wgt_limdown)
@@ -481,48 +484,52 @@ setkey(samplecarryDf,variable)
 
 #2.1 Design frontier EfficientFrontier ####
 
-Select_Asset_Full = colnames(selected_rmx)[match(assetSelection,colnames(selected_rmx))]
-sampleret_EF=as.matrix(selected_rmx*100)
+Select_Asset_Full = srNames
+sampleret_EF=as.matrix(selected_rmx)
+sampleret_EF= apply(sampleret_EF,2,as.numeric)
 
 d_data_fullset=eff.frontier_weight(returns=sampleret_EF,selection=Select_Asset_Full,
-                                   exp_ret=samplecarry,short="yes",
+                                   exp_ret=samplecarry,short="no",
                                    max.allocation=wgt_limup[Select_Asset_Full],
                                    min.allocation=wgt_limdown[Select_Asset_Full],
                                    risk.premium.up=2,
-                                   risk.increment=0.00015,
+                                   risk.increment=0.00005,
                                    frequency=252)
 
 
 optpoint = d_data_fullset[d_data_fullset$sharpe==max(d_data_fullset$sharpe),]
+optpoint6pct = d_data_fullset[round(d_data_fullset$Exp.Return,2)==7.00,]
 
-
-
+optpoint = optpoint
 # save the three set
 # stress_front=d_data_fullset
 # stress_front$mx_ref="stress"
 # stress_flat_opt=optpoint
 # stress_flat_opt$mx_ref="stress"
-# global_front=d_data_fullset
-# global_opt=optpoint
-# global_front$mx_ref="global"
-# global_opt$mx_ref="global"
+global_front=d_data_fullset
+global_opt=optpoint
+global_front$mx_ref="global"
+global_opt$mx_ref="global"
+
+
 # mild_front=d_data_fullset
-# mild_opt=optpoint
+# mild_opt=d_data_fullset
 # mild_front$mx_ref="mild"
 # mild_opt$mx_ref="mild"
 
 
-# frontierDB=rbind(stress_front,global_front,mild_front)
-# optpointDB=rbind(mild_opt,global_opt,stress_flat_opt[1,])
+frontierDB=global_front
+optpointDB=global_opt
   
-load("C:/Users/eusep/OneDrive/Documenti/Macro Framework/Asset Allocation/Data/optpointDB3Scen.rda")  
-load("C:/Users/eusep/OneDrive/Documenti/Macro Framework/Asset Allocation/Data/Frontier3Scen.rda")
+#load("C:/Users/eusep/OneDrive/Documenti/Macro Framework/Asset Allocation/Data/optpointDB3Scen.rda")  
+#load("C:/Users/eusep/OneDrive/Documenti/Macro Framework/Asset Allocation/Data/Frontier3Scen.rda")
 # save(frontierDB, file = "C:/Users/eusep/OneDrive/Documenti/Macro Framework/Asset Allocation/Data/Frontier3Scen.rda")
 # save(optpointDB, file = "C:/Users/eusep/OneDrive/Documenti/Macro Framework/Asset Allocation/Data/optpointDB3Scen.rda")
 
 
 AdditionalStats=Stats4_[samplecarryDf]
-optpointDB_melt=as.data.table(melt(optpointDB, id=c("Exp.Return","sharpe","VaR20Days","mx_ref")))
+
+optpointDB_melt=as.data.table(melt(optpointDB, id=c("Exp.Return","sharpe","Std.Dev","VaR20Days","mx_ref")))
 
 setkey(AdditionalStats,variable)
 setkey(optpointDB_melt,variable)
@@ -531,58 +538,65 @@ AdditionalStats2=optpointDB_melt[AdditionalStats]
 # AdditionalStats2$Vol_Adj=AdditionalStats2$Vol*AdditionalStats2$ES
 
 max1=round(max(AdditionalStats2$value),2)+0.01
-min1=round(min(AdditionalStats2$value),2)-0.01
+min1=round(min(AdditionalStats2$value),2)
 
 mid= min1+(max1 -min1)/2
 
-ymin=floor(min(frontierDB$Exp.Return,AdditionalStats$expRet))
+ymin=min(0,floor(min(frontierDB$Exp.Return,AdditionalStats$expRet)))
 maxvol=max(AdditionalStats$Vol)
 mindiff=min(abs(frontierDB$Std.Dev-maxvol))
 
-ymax=ceiling(max(mean(subset(frontierDB,Std.Dev==(maxvol+mindiff))[,"Exp.Return"]),AdditionalStats2$Vol))
+ymax=10
 
 y_gap=(ymax-ymin)/5
 y_breaks=seq(ymin,ymax,y_gap)
 
 
 xmin=floor(min(0,d_data_fullset$Std.Dev,AdditionalStats$Vol))
-xmax=ceiling(max(AdditionalStats$Vol,d_data_fullset$Std.Dev))
+xmax=7.5
 x_gap=(xmax-xmin)/5
 x_breaks=seq(xmin,xmax,x_gap)
+
+setkey(AdditionalStats2,variable)
+setnames(mmkt_assets_des,"Code","variable")
+setkey(mmkt_assets_des,variable)
+AdditionalStats2=AdditionalStats2[mmkt_assets_des]
 
 
 OpportunitySet=ggplot() +
   geom_line(data=frontierDB, aes(x=Std.Dev, y=Exp.Return,color=mx_ref),
-            alpha=1,size=1,linetype="solid") +
+            alpha=1,linewidth=1,linetype="solid") +
   # geom_line(data=d_data_fullset_no_FX, aes(x=Std.Dev, y=Exp.Return),
   #            alpha=0.7,size=1,color="gray",linetype="dashed") +
   # geom_point(data=optpoint, aes(x=Std.Dev, y=Exp.Return),
   #            fill="black", size=4,shape=23) +
   geom_point(data=optpointDB, aes(x=Std.Dev, y=Exp.Return,fill=mx_ref),
-             size=3,shape=23) +
+             size=8,shape=23) +
+  geom_point(data=optpoint6pct, aes(x=Std.Dev, y=Exp.Return,fill="6% Percent Target"),
+             size=8,shape=23) +
   guides(fill=guide_legend(title="Regime"),
          color=guide_legend(title="Regime"))+
   # geom_hline(yintercept=optpoint$Exp.Return,linetype="dashed", color="black")+
   # geom_vline(xintercept =optpoint$Std.Dev ,linetype="dashed",color="black")+
   # geom_hline(yintercept =optpoint_no_FX$Exp.Return ,linetype="dashed",color="black")+
   geom_point(data=AdditionalStats2[!is.na(value)& mx_ref  == "global"], aes(x=Vol, y=expRet),size=4,color="gray") +
-  geom_text_repel(data=AdditionalStats2[!is.na(value) & mx_ref  == "global"],aes(x=Vol, y=expRet,label=variable), family="Bahnschrift",
-                  max.overlaps = 50)+
+  geom_text_repel(data=AdditionalStats2[!is.na(value) & mx_ref  == "global"],aes(x=Vol, y=expRet,label=Index), family="Calibri",
+                  max.overlaps = 50,size=5)+
   # scale_color_gradient2(low = "red", mid = "white", 
   #                       high = "darkblue", midpoint = 0,
   #                       limits = c(mean(wgt_limdown), max1),breaks=seq(w_min,w_max,w_gap),
   #                       labels=seq(w_min,w_max,w_gap)*100,name="Alloc % tangency\nPorfolio")+
   theme(panel.background=element_rect(fill="white"),
         panel.grid.major =element_line(colour = "gray85",linetype = "dotted"),
-        text=element_text(size=12),
+        text=element_text(size=25),
         plot.title=element_text(size=20, color="gray"))+
-  theme(axis.text.y = element_text(color = "black", size = 24, family = "Bahnschrift"),
-        axis.text.x = element_text(color = "black", size = 24, family = "Bahnschrift"),
-        axis.title.x = element_text(color = "black", size = 24, family = "Bahnschrift"),
-        axis.title.y = element_text(color = "black", size = 24, family = "Bahnschrift"))+
+  theme(axis.text.y = element_text(color = "black", size = 24, family = "Calibri"),
+        axis.text.x = element_text(color = "black", size = 24, family = "Calibri"),
+        axis.title.x = element_text(color = "black", size = 24, family = "Calibri"),
+        axis.title.y = element_text(color = "black", size = 24, family = "Calibri"))+
   theme(legend.position = "bottom",
-        legend.text = element_text(family = "Bahnschrift", size = 12),
-        legend.title = element_text(family = "Bahnschrift", size = 16))+
+        legend.text = element_text(family = "Calibri", size = 15),
+        legend.title = element_blank())+
   #guides(guide_legend(title="Alloc %"))+
   geom_hline(yintercept=0,linetype="dotted", color="black")+
   geom_vline(xintercept =0 ,linetype="dotted",color="black")+
@@ -590,15 +604,16 @@ OpportunitySet=ggplot() +
                      limits = c(ymin, ymax)) +
   scale_x_continuous(breaks = x_breaks,
                      limits = c(xmin, xmax)) +
-  scale_fill_economist(label = c("LongTerm Hist.","Mild", "Stress"))+
-  scale_colour_economist(label = c("LongTerm Hist.","Mild", "Stress"))+
+  scale_fill_economist(label = c("7% Target Return","Max Sharpe Portfolio",
+                                 "Stress"))+
+  scale_colour_economist(label = c("Efficient Frontier"))+
   #ggtitle("Efficient Frontier\nand Optimal Portfolio") +
   labs(x="Expected Volatility %", y="Expected Return %")
 
 
-getwd()
-ggsave(paste("opportunitySet_ScenarioS",".png",sep=""), plot = OpportunitySet, device = png,
-       scale = 2, width = 17, height = 10, units = c("cm"),
+path=getwd()
+ggsave(paste(path,"/opportunitySet_ScenarioS",".png",sep=""), plot = OpportunitySet, device = png,
+       scale = 2, width = 20, height = 12, units = c("cm"),
        dpi = 600)
 getwd()
 #2.2.1 Analysis of the Allocation ####
